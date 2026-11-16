@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ocarina del Tiempo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif;user-select:none;-webkit-tap-highlight-color:transparent}
+body{background:#212d3b;color:#f0f4f8;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:15px}
+h1{color:#d4af37;font-size:1.5rem;margin-bottom:12px;letter-spacing:1px}
+#visualizer{background:#18212c;border:2px solid #d4af37;border-radius:12px;width:100%;max-width:650px;padding:12px;text-align:center;margin-bottom:12px;min-height:85px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+#current-song-title{font-weight:bold;color:#d4af37;margin-bottom:6px;font-size:1.15rem}
+#notes-display{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.note-badge{padding:5px 10px;border-radius:50%;font-weight:bold;font-size:.9rem;background:#2b3a67;color:#fff;transition:transform .1s}
+.note-badge.active{transform:scale(1.25);box-shadow:0 0 12px #fff}
+.note-A{background:#1e6091}.note-C{background:#d9a01b;color:#000}
+#board-container{position:relative;width:100%;max-width:650px;border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.6);margin-bottom:15px;background:#263342}
+#board-container img{width:100%;height:auto;display:block;pointer-events:none}
+.hotspot{position:absolute;background:transparent;border:2px solid transparent;border-radius:14%;cursor:pointer;z-index:10}
+.hotspot:active{transform:scale(.94);background:rgba(255,215,0,.25)}
+.hotspot.playing{box-shadow:0 0 18px 4px #ffd700,inset 0 0 12px rgba(255,215,0,.6);border:2px solid #fff}
+#stop-btn{width:100%;max-width:650px;padding:14px;background:#9e2a2b;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>OCARINA DEL TIEMPO</h1>
+<div id="visualizer">
+<div id="current-song-title">Toca un ícono para reproducir</div>
+<div id="notes-display"></div>
+</div>
+<div id="board-container">
+<img src="icons.png" alt="Tablero">
+<button type="button" class="hotspot" style="top:4.5%;left:2.3%;width:15.8%;height:27.5%" onclick="playSong(0)"></button>
+<button type="button" class="hotspot" style="top:4.5%;left:22.2%;width:15.8%;height:27.5%" onclick="playSong(1)"></button>
+<button type="button" class="hotspot" style="top:4.5%;left:42.1%;width:15.8%;height:27.5%" onclick="playSong(2)"></button>
+<button type="button" class="hotspot" style="top:4.5%;left:62.0%;width:15.8%;height:27.5%" onclick="playSong(3)"></button>
+<button type="button" class="hotspot" style="top:4.5%;left:81.9%;width:15.8%;height:27.5%" onclick="playSong(4)"></button>
+<button type="button" class="hotspot" style="top:36.2%;left:2.3%;width:15.8%;height:27.5%" onclick="playSong(5)"></button>
+<button type="button" class="hotspot" style="top:36.2%;left:22.2%;width:15.8%;height:27.5%" onclick="playSong(6)"></button>
+<button type="button" class="hotspot" style="top:36.2%;left:42.1%;width:15.8%;height:27.5%" onclick="playSong(7)"></button>
+<button type="button" class="hotspot" style="top:36.2%;left:62.0%;width:15.8%;height:27.5%" onclick="playSong(8)"></button>
+<button type="button" class="hotspot" style="top:36.2%;left:81.9%;width:15.8%;height:27.5%" onclick="playSong(9)"></button>
+<button type="button" class="hotspot" style="top:68.0%;left:24.5%;width:15.8%;height:27.5%" onclick="playSong(10)"></button>
+<button type="button" class="hotspot" style="top:68.0%;left:42.1%;width:15.8%;height:27.5%" onclick="playSong(11)"></button>
+<button type="button" class="hotspot" style="top:68.0%;left:59.7%;width:15.8%;height:27.5%" onclick="playSong(12)"></button>
+</div>
+<button id="stop-btn" type="button" onclick="stopSong()">⏹ Detener Reproducción</button>
+<script>
+const NOTES={D4:293.66,F4:349.23,A4:440,B4:493.88,D5:587.33};
+const LABELS={D4:'A',F4:'▼',A4:'▶',B4:'◀',D5:'▲'};
+const SONGS=[
+{name:"Nana de Zelda",notes:[{n:'B4',d:600},{n:'D5',d:300},{n:'A4',d:900},{n:'B4',d:600},{n:'D5',d:300},{n:'A4',d:900}]},
+{name:"Canción de Epona",notes:[{n:'D5',d:300},{n:'B4',d:300},{n:'A4',d:800},{n:'D5',d:300},{n:'B4',d:300},{n:'A4',d:800}]},
+{name:"Canción de Saria",notes:[{n:'F4',d:250},{n:'A4',d:250},{n:'B4',d:500},{n:'F4',d:250},{n:'A4',d:250},{n:'B4',d:500}]},
+{name:"Canción del Sol",notes:[{n:'A4',d:250},{n:'F4',d:250},{n:'D5',d:600},{n:'A4',d:250},{n:'F4',d:250},{n:'D5',d:600}]},
+{name:"Canción del Tiempo",notes:[{n:'A4',d:500},{n:'D4',d:1000},{n:'F4',d:500},{n:'A4',d:500},{n:'D4',d:1000},{n:'F4',d:500}]},
+{name:"Canción de las Tormentas",notes:[{n:'D4',d:220},{n:'F4',d:220},{n:'D5',d:650},{n:'D4',d:220},{n:'F4',d:220},{n:'D5',d:650}]},
+{name:"Minueto del Bosque",notes:[{n:'D4',d:300},{n:'D5',d:300},{n:'B4',d:600},{n:'A4',d:300},{n:'B4',d:300},{n:'A4',d:700}]},
+{name:"Bolero del Fuego",notes:[{n:'F4',d:250},{n:'D4',d:250},{n:'F4',d:250},{n:'D4',d:250},{n:'A4',d:250},{n:'F4',d:250},{n:'A4',d:250},{n:'F4',d:600}]},
+{name:"Preludio de la Luz",notes:[{n:'D5',d:250},{n:'A4',d:600},{n:'D5',d:250},{n:'A4',d:250},{n:'B4',d:250},{n:'D5',d:800}]},
+{name:"Nocturno de la Sombra",notes:[{n:'B4',d:500},{n:'A4',d:500},{n:'A4',d:250},{n:'D4',d:250},{n:'B4',d:250},{n:'A4',d:250},{n:'F4',d:800}]},
+{name:"Réquiem del Espíritu",notes:[{n:'D4',d:600},{n:'F4',d:300},{n:'D4',d:300},{n:'A4',d:600},{n:'F4',d:600},{n:'D4',d:900}]},
+{name:"Serenata del Agua",notes:[{n:'D4',d:400},{n:'F4',d:400},{n:'A4',d:400},{n:'A4',d:400},{n:'B4',d:800}]},
+{name:"Canción del Espantapájaros",notes:[{n:'A4',d:250},{n:'B4',d:250},{n:'A4',d:250},{n:'B4',d:250},{n:'D5',d:250},{n:'B4',d:250},{n:'A4',d:250},{n:'F4',d:600}]}
+];
+const wavCache={};let timeouts=new Array(),currentAudios=new Array();
+function buildOcarinaWav(freq,ms){
+const key=freq+'_'+ms;if(wavCache[key])return wavCache[key];
+const sr=22050,len=Math.floor(sr*(ms/1000)),buf=new ArrayBuffer(44+len*2),v=new DataView(buf);
+const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+w(0,'RIFF');v.setUint32(4,36+len*2,true);w(8,'WAVE');w(12,'fmt ');
+v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+w(36,'data');v.setUint32(40,len*2,true);
+for(let i=0;i<len;i++){
+const t=i/sr,vib=Math.sin(2*Math.PI*5.2*t)*3.2;
+const phase=2*Math.PI*(freq+vib)*t;
+let env=1;if(t<0.05)env=t/0.05;else if(t>(ms/1000)-0.06)env=Math.max(0,((ms/1000)-t)/0.06);
+const sig=(Math.sin(phase)*0.82+Math.sin(phase*2)*0.12+(Math.random()*2-1)*0.025)*env;
+v.setInt16(44+i*2,Math.max(-1,Math.min(1,sig))*32767,true);
+}
+const url=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+wavCache[key]=url;return url;
+}
+function stopSong(){
+timeouts.forEach(t=>clearTimeout(t));timeouts=new Array();
+currentAudios.forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}});currentAudios=new Array();
+document.querySelectorAll('.hotspot').forEach(b=>b.classList.remove('playing'));
+document.querySelectorAll('.note-badge').forEach(b=>b.classList.remove('active'));
+}
+function playSong(idx){
+stopSong();const song=SONGS[idx],spots=document.querySelectorAll('.hotspot');
+if(spots[idx])spots[idx].classList.add('playing');
+document.getElementById('current-song-title').textContent=song.name;
+const nd=document.getElementById('notes-display');nd.innerHTML='';
+song.notes.forEach((it,i)=>{
+const b=document.createElement('span');
+b.className='note-badge '+(it.n==='D4'?'note-A':'note-C');
+b.textContent=LABELS[it.n];b.id='nb-'+i;nd.appendChild(b);
+});
+let el=0;
+song.notes.forEach((it,i)=>{
+const url=buildOcarinaWav(NOTES[it.n],it.d);
+const t=setTimeout(()=>{
+document.querySelectorAll('.note-badge').forEach(b=>b.classList.remove('active'));
+const cb=document.getElementById('nb-'+i);if(cb)cb.classList.add('active');
+const aud=new Audio(url);aud.play();currentAudios.push(aud);
+},el);
+timeouts.push(t);el+=it.d+55;
+});
+timeouts.push(setTimeout(()=>{
+if(spots[idx])spots[idx].classList.remove('playing');
+document.querySelectorAll('.note-badge').forEach(b=>b.classList.remove('active'));
+},el));
+}
+</script>
+</body>
+</html>
