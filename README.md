@@ -1,4 +1,5 @@
 Spanish
+
 ¿Cansado de tener que memorizar o presionar manualmente cada botón del control para tocar las melodías en The Legend of Zelda: Ocarina of Time? Esta aplicación es la herramienta definitiva para tus partidas.
 ¿Qué hace esta app?
 Incluye todas las canciones clásicas y de teletransporte del juego con sonido sintetizado de alta precisión, diseñado específicamente para que los sensores o el reconocimiento de audio del juego/emulador detecten las notas automáticamente. Solo saca tu ocarina en el juego, dale Play en tu teléfono y deja que la aplicación toque la melodía por ti para activar eventos o viajar al instante.
@@ -13,6 +14,7 @@ Características principales:
 3. Sube el volumen de tu teléfono, acércalo al micrófono (si juegas en consola/hardware compatible o configuración por audio) y presiona la canción que deseas activar.
 
 English
+
 Tired of memorizing or manually pressing every controller button to play melodies in The Legend of Zelda: Ocarina of Time? This app is the ultimate tool for your playthroughs.
 What does this app do?
 It includes all the classic and warp songs from the game with high-precision synthesized sound, specifically designed so your game or emulator's sensors or audio recognition detect the notes automatically. Just pull out your ocarina in-game, hit Play on your phone, and let the app play the melody for you to trigger events or fast-travel instantly.
